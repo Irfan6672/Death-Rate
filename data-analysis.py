@@ -38,6 +38,14 @@ import pandas as pd
 us_population = 334.3e6
 uganda_population = 42.9e6
 
+# the values provided in the WHO Standard Population table referenced
+# in 'Ahmad OB, Boschi-Pinto C, Lopez AD, Murray CJ, Lozano R, Inoue
+# M (2001). Age standardization of rates: a new WHO standard.' These
+# values represent the population distribution across age groups from
+# 0 to 85+ years 
+who_standard_population = [98416, 97772, 97649, 98222, 101660, 110599, 122577, 109451, 82767, 64307, 46266, 31202, 20490, 13162, 8273, 4862, 2560, 1092, 260]
+total_who_standard_population = sum(who_standard_population)
+
 
 # reading the csv file
 age_specific_death_rate_df = pd.read_csv("data.csv")
@@ -49,19 +57,15 @@ age_specific_death_rate_df.rename(columns={'Age group (years)' : 'age_group_year
 
 
 # Crude Death Rate Calculation
-def crude_death_rate_calculation(dataframe = age_specific_death_rate_df):
-    us_total_death_rate = dataframe['us_death_rate_2019'].sum()
-    uganda_total_death_rate = dataframe['uganda_death_rate_2019'].sum()
+def crude_death_rate_calculation(dataframe, population):
 
-    us_crude_death_rate = (us_total_death_rate / us_population) * 100000
-    uganda_crude_death_rate = uganda_total_death_rate / uganda_population * 100000
+    total_death_rate = dataframe.sum()
 
-    print(us_total_death_rate / us_population * 100000)
-    print(uganda_total_death_rate / uganda_population * 100000)
+    crude_death_rate = total_death_rate / population * 100000
 
-    return f'Crude Death Rate (per 100,000 people) for 2019\
-    \nUnited States: {round(us_crude_death_rate, 1)} deaths per 100,000 people\
-    \nUganda: {round(uganda_crude_death_rate,1)} deaths per 100,000 people\n'
+    print(crude_death_rate)
+
+    return round(crude_death_rate, 1)
 
 
 # To calculate the age-standardized death rate for both the United
@@ -87,23 +91,17 @@ def crude_death_rate_calculation(dataframe = age_specific_death_rate_df):
 
 
 # Age Standardized Death Rate Calculation
-def age_standardized_death_rate_calculation(dataframe = age_specific_death_rate_df):
+def age_standardized_death_rate_calculation(dataframe, population):
     
-    us_expected_death = sum(dataframe['us_death_rate_2019'] * 10000)
-    uganda_expected_death = sum(dataframe['uganda_death_rate_2019'] * 10000)
+    expected_death = sum(dataframe['death_rate_2019'] * 10000)
 
-    us_age_standarized_death_rate = us_expected_death / us_population * 100000
-    uganda_age_standarized_death_rate = uganda_expected_death / uganda_population * 100000
+    age_standarized_death_rate = expected_death / population * 100000
 
-    return f'Age-standardized Death Rate (per 100,000 people) for 2019\
-    \nUnited States: {round(us_age_standarized_death_rate, 1)} deaths per 100,000 people\
-    \nUganda: {round(uganda_age_standarized_death_rate,1)} deaths per 100,000 people'
+    return age_standarized_death_rate
     
 
-print(crude_death_rate_calculation())
-print(age_standardized_death_rate_calculation())
+us_crude_death_rate = crude_death_rate_calculation(age_specific_death_rate_df['us_death_rate_2019'], us_population)
+uganda_crude_death_rate = crude_death_rate_calculation(age_specific_death_rate_df['uganda_death_rate_2019'], uganda_population)
 
-# total standard population calculated as 10,000 multiplied
-# by total number of age groups i.e. 18, this is cause the
-# standard population for each age group is taken as 10,000
-total_standard_population = 10000 * 18
+print(us_crude_death_rate, uganda_crude_death_rate)
+# print(age_standardized_death_rate_calculation())
