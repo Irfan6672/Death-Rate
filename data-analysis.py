@@ -30,42 +30,17 @@
 # populations being compared.
 
 
-import pandas as pd
+
+
+# from WHO refernce WHO Standard Population — Table 1 in 'Ahmad OB,
+# Boschi-Pinto C, Lopez AD, Murray CJ, Lozano R, Inoue M (2001).
+# Age standardization of rates: a new WHO standard.'
+# Table of Standard WHO population
+
 
 
 # obtained the population of us from 
 # https://www.worldometers.info/world-population/
-us_population = 334.3e6
-uganda_population = 42.9e6
-
-# the values provided in the WHO Standard Population table referenced
-# in 'Ahmad OB, Boschi-Pinto C, Lopez AD, Murray CJ, Lozano R, Inoue
-# M (2001). Age standardization of rates: a new WHO standard.' These
-# values represent the population distribution across age groups from
-# 0 to 85+ years 
-who_standard_population = [98416, 97772, 97649, 98222, 101660, 110599, 122577, 109451, 82767, 64307, 46266, 31202, 20490, 13162, 8273, 4862, 2560, 1092, 260]
-total_who_standard_population = sum(who_standard_population)
-
-
-# reading the csv file
-age_specific_death_rate_df = pd.read_csv("data.csv")
-
-age_specific_death_rate_df.rename(columns={'Age group (years)' : 'age_group_years',
-                'Death rate, United States, 2019' : 'us_death_rate_2019',
-                'Death rate, Uganda, 2019' : 'uganda_death_rate_2019'},
-                 inplace= True)
-
-
-# Crude Death Rate Calculation
-def crude_death_rate_calculation(dataframe, population):
-
-    total_death_rate = dataframe.sum()
-
-    crude_death_rate = total_death_rate / population * 100000
-
-    print(crude_death_rate)
-
-    return round(crude_death_rate, 1)
 
 
 # To calculate the age-standardized death rate for both the United
@@ -89,19 +64,71 @@ def crude_death_rate_calculation(dataframe, population):
 # expected deaths by the total standard population and multiplying by
 # 100,000 to express it per 100,000 people.
 
+#IMPORTS
+import pandas as pd
+
+
+us_population = 334.3e6
+uganda_population = 42.9e6
+
+
+# reading the who standard population table .csv file
+who_standard_population_df = pd.read_csv('who_standard_population.csv')
+who_standard_population_df.rename(columns={'Age Group' : 'age_group',
+                                        'Percentage (%)' : 'Percentage',
+                                        'Population (assuming total population of 100000)' : 
+                                        'Population'},
+                                        inplace=True)
+total_who_standard_population = sum(who_standard_population_df['Population'])
+
+
+# reading the age specified death rate .csv file
+age_specific_death_rate_df = pd.read_csv("data.csv")
+age_specific_death_rate_df.rename(columns={'Age group (years)' : 'age_group_years',
+                'Death rate, United States, 2019' : 'us_death_rate_2019',
+                'Death rate, Uganda, 2019' : 'uganda_death_rate_2019'},
+                 inplace= True)
+us_age_specific_death_rate_df = pd.DataFrame({'age_group' : age_specific_death_rate_df['age_group_years'],
+                                              'death_rate' : age_specific_death_rate_df['us_death_rate_2019']})
+uganda_age_specific_death_rate_df = pd.DataFrame({'age_group' : age_specific_death_rate_df['age_group_years'],
+                                              'death_rate' : age_specific_death_rate_df['uganda_death_rate_2019']})
+
+
+# creating crude death rate calculation function
+def crude_death_rate_calculation(dataframe, population):
+
+    total_death_rate = dataframe['death_rate'].sum()
+    crude_death_rate = round(total_death_rate / population * 100000, 1)
+    return round(crude_death_rate, 1)
+
+
+# creating age standardized death rate calculation function
+def age_standardized_death_rate_calculation(dataframe, population):
+
+    merged_df = pd.merge(who_standard_population_df, dataframe, on='age_group')
+    merged_df['expected_death_rate'] = merged_df['Population'] * merged_df['death_rate']
+    merged_df['WHO_world_standard_proportion'] = merged_df['Percentage'] / 100
+    merged_df['ASDR'] = merged_df['death_rate'] * merged_df['WHO_world_standard_proportion']
+    age_standarized_death_rate = merged_df['ASDR'].sum()
+    return round(age_standarized_death_rate, 1)
+
+
+# Crude Death Rate Calculation
+us_crude_death_rate = crude_death_rate_calculation(us_age_specific_death_rate_df, us_population)
+uganda_crude_death_rate = crude_death_rate_calculation(uganda_age_specific_death_rate_df, uganda_population)
+
 
 # Age Standardized Death Rate Calculation
-def age_standardized_death_rate_calculation(dataframe, population):
-    
-    expected_death = sum(dataframe['death_rate_2019'] * 10000)
+us_age_standardized_death_rate = age_standardized_death_rate_calculation(
+    us_age_specific_death_rate_df, total_who_standard_population)
+uganda_age_standardized_death_rate = age_standardized_death_rate_calculation(
+    uganda_age_specific_death_rate_df, total_who_standard_population)
 
-    age_standarized_death_rate = expected_death / population * 100000
 
-    return age_standarized_death_rate
-    
+print(f'Crude Death Rate per 100,000 people\
+\n\tUnited States: {us_crude_death_rate} deaths per 100,000 people\
+\n\tUganda: {uganda_crude_death_rate} deaths per 100,000 people' )
 
-us_crude_death_rate = crude_death_rate_calculation(age_specific_death_rate_df['us_death_rate_2019'], us_population)
-uganda_crude_death_rate = crude_death_rate_calculation(age_specific_death_rate_df['uganda_death_rate_2019'], uganda_population)
-
-print(us_crude_death_rate, uganda_crude_death_rate)
-# print(age_standardized_death_rate_calculation())
+print(f'\n\nAge-Standardized Death Rate per 100,000 people\
+\n\tUnited States: {us_age_standardized_death_rate} deaths per 100,000 people\
+\n\tUganda: {uganda_age_standardized_death_rate} deaths per 100,000 people')
