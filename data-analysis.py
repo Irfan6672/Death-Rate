@@ -1,68 +1,38 @@
-# Data Collection: I retrieved the age-specific death rates from COPD
-# for both the United States and Uganda for 2019. This data will be
-# used to calculate both crude and age-standardized death rates.
+# Data Collection:  
+# Age-specific death rates for COPD in 2019 were retrieved for the
+# United States and Uganda from the provided website. WHO standard
+# population data and total populations for both countries in 2019
+# were obtained from reliable sources.
 
-# Crude Death Rate Calculation: The crude death rate is calculated by
-# dividing the total number of deaths by the total population and 
-# then multiplying by 100,000 to express it per 100,000 people. For 
-# both countries, I will sum up all age-specific death rates to
-# obtain the total deaths, and then divide by the total population.
+# **Crude Death Rate Calculation:**
+# Total deaths were computed by summing age-specific death rates per
+# 100,000 across all age groups. These totals were divided by the
+# respective total populations and multiplied by 100,000 to yield
+# crude death rates.
 
-# Age-Standardized Death Rate Calculation: Age-standardized death
-# rates allow for a fair comparison between populations with
-# different age structures. To calculate this, I will use the WHO
-# standard population. First, I'll apply the age-specific death
-# rates of each country to the WHO standard population to get the
-# expected number of deaths. Then, I'll divide the total expected
-# deaths by the standard population and multiply by 100,000 to get
-# the age-standardized death rate.
+# Age-Standardized Death Rate Calculation:
+# Utilizing the WHO standard population, age-specific death rates for
+# each country were applied to derive expected deaths per age group.
+# These were summed to obtain total expected deaths. The total was
+# then divided by the standard population and multiplied by 100,000
+# to generate age-standardized death rates.
 
-# Assumptions: I assume that the age-specific death rates provided
-# are accurate and representative of the entire population.
-# Additionally, I assume that the WHO standard population is
-# appropriate for age-standardization.
+# Assumptions:
+# Assumptions include the accuracy and representativeness of
+# age-specific death rates and the suitability of the WHO standard
+# population for age-standardization.
 
-# Reasoning for Differences: Crude death rates reflect the actual
-# death rates in the population, whereas age-standardized death rates
-# adjust for differences in age distributions among populations.
-# Therefore, differences between crude and age-standardized death
-# rates may arise due to variations in age structures between the
-# populations being compared.
+# Reasoning for Differences:
+# Crude death rate reflect actual death rates, while age-standardized
+# rates adjust for differences in age structures between populations.
+# Disparities between the two metrics arise due to variations in age
+# distributions among populations.
 
-
-
-
-# from WHO refernce WHO Standard Population — Table 1 in 'Ahmad OB,
-# Boschi-Pinto C, Lopez AD, Murray CJ, Lozano R, Inoue M (2001).
-# Age standardization of rates: a new WHO standard.'
-# Table of Standard WHO population
-
-
-
-# obtained the population of us from 
-# https://www.worldometers.info/world-population/
-
-
-# To calculate the age-standardized death rate for both the United
-# States and Uganda based on the provided data, we need to apply
-# age-standardization techniques. This involves adjusting the death
-# rates for each age group to a standard population distribution to
-# eliminate the effects of differences in age structures between
-# populations. Here's how we can do it:
-
-# Define a standard population distribution. We will use the World
-# Health Organization (WHO) standard population distribution.
-
-# For each country, calculate the expected number of deaths for each
-# age group by multiplying the death rate for that age group by the
-# corresponding population of the standard population distribution.
-
-# Sum up the expected number of deaths across all age groups for each
-# country.
-
-# Calculate the age-standardized death rate by dividing the total
-# expected deaths by the total standard population and multiplying by
-# 100,000 to express it per 100,000 people.
+# In summary, these stages involve gathering data, computing crude
+# death rates based on total populations, and then adjusting for age
+# structures using the WHO standard population to derive
+# age-standardized death rates. These calculations aid in comparing
+# COPD mortality rates between the United States and Uganda.
 
 #IMPORTS
 import pandas as pd
@@ -84,14 +54,17 @@ total_who_standard_population = sum(who_standard_population_df['Population'])
 
 # reading the age specified death rate .csv file
 age_specific_death_rate_df = pd.read_csv("data.csv")
-age_specific_death_rate_df.rename(columns={'Age group (years)' : 'age_group_years',
-                'Death rate, United States, 2019' : 'us_death_rate_2019',
-                'Death rate, Uganda, 2019' : 'uganda_death_rate_2019'},
-                 inplace= True)
-us_age_specific_death_rate_df = pd.DataFrame({'age_group' : age_specific_death_rate_df['age_group_years'],
-                                              'death_rate' : age_specific_death_rate_df['us_death_rate_2019']})
-uganda_age_specific_death_rate_df = pd.DataFrame({'age_group' : age_specific_death_rate_df['age_group_years'],
-                                              'death_rate' : age_specific_death_rate_df['uganda_death_rate_2019']})
+age_specific_death_rate_df.rename(
+    columns={'Age group (years)' : 'age_group_years',
+            'Death rate, United States, 2019' : 'us_death_rate_2019',
+            'Death rate, Uganda, 2019' : 'uganda_death_rate_2019'},
+            inplace= True)
+us_age_specific_death_rate_df = pd.DataFrame(
+    {'age_group' : age_specific_death_rate_df['age_group_years'],
+    'death_rate' : age_specific_death_rate_df['us_death_rate_2019']})
+uganda_age_specific_death_rate_df = pd.DataFrame(
+    {'age_group' : age_specific_death_rate_df['age_group_years'],
+    'death_rate' : age_specific_death_rate_df['uganda_death_rate_2019']})
 
 
 # creating crude death rate calculation function
@@ -99,14 +72,13 @@ def crude_death_rate_calculation(dataframe, population):
 
     total_death_rate = dataframe['death_rate'].sum()
     crude_death_rate = round(total_death_rate / population * 100000, 1)
-    return round(crude_death_rate, 1)
+    return crude_death_rate
 
 
 # creating age standardized death rate calculation function
-def age_standardized_death_rate_calculation(dataframe, population):
+def age_standardized_death_rate_calculation(dataframe):
 
     merged_df = pd.merge(who_standard_population_df, dataframe, on='age_group')
-    merged_df['expected_death_rate'] = merged_df['Population'] * merged_df['death_rate']
     merged_df['WHO_world_standard_proportion'] = merged_df['Percentage'] / 100
     merged_df['ASDR'] = merged_df['death_rate'] * merged_df['WHO_world_standard_proportion']
     age_standarized_death_rate = merged_df['ASDR'].sum()
@@ -114,21 +86,24 @@ def age_standardized_death_rate_calculation(dataframe, population):
 
 
 # Crude Death Rate Calculation
-us_crude_death_rate = crude_death_rate_calculation(us_age_specific_death_rate_df, us_population)
-uganda_crude_death_rate = crude_death_rate_calculation(uganda_age_specific_death_rate_df, uganda_population)
+us_crude_death_rate = crude_death_rate_calculation(
+    us_age_specific_death_rate_df, us_population)
+uganda_crude_death_rate = crude_death_rate_calculation(
+    uganda_age_specific_death_rate_df, uganda_population)
 
 
 # Age Standardized Death Rate Calculation
 us_age_standardized_death_rate = age_standardized_death_rate_calculation(
-    us_age_specific_death_rate_df, total_who_standard_population)
+    us_age_specific_death_rate_df)
 uganda_age_standardized_death_rate = age_standardized_death_rate_calculation(
-    uganda_age_specific_death_rate_df, total_who_standard_population)
+    uganda_age_specific_death_rate_df)
 
 
-print(f'Crude Death Rate per 100,000 people\
-\n\tUnited States: {us_crude_death_rate} deaths per 100,000 people\
-\n\tUganda: {uganda_crude_death_rate} deaths per 100,000 people' )
+# RESULT
+print(f'CRUDE DEATH RATE:\
+\nUnited States: {us_crude_death_rate} deaths per 100,000 people\
+\nUganda: {uganda_crude_death_rate} deaths per 100,000 people' )
 
-print(f'\n\nAge-Standardized Death Rate per 100,000 people\
-\n\tUnited States: {us_age_standardized_death_rate} deaths per 100,000 people\
-\n\tUganda: {uganda_age_standardized_death_rate} deaths per 100,000 people')
+print(f'\nAGE-STANDARDIZED DEATH RATE:\
+\nUnited States: {us_age_standardized_death_rate} deaths per 100,000 people\
+\nUganda: {uganda_age_standardized_death_rate} deaths per 100,000 people')
