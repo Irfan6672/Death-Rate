@@ -1,38 +1,33 @@
-# Data Collection:  
+# DATA COLLECTION:  
 # Age-specific death rates for COPD in 2019 were retrieved for the
 # United States and Uganda from the provided website. WHO standard
 # population data and total populations for both countries in 2019
 # were obtained from reliable sources.
 
-# **Crude Death Rate Calculation:**
+# CRUDE DEATH RATE CALCULATION:
 # Total deaths were computed by summing age-specific death rates per
 # 100,000 across all age groups. These totals were divided by the
 # respective total populations and multiplied by 100,000 to yield
 # crude death rates.
 
-# Age-Standardized Death Rate Calculation:
+# AGE-STANDARDIZED DEATH RATE CALCULATION:
 # Utilizing the WHO standard population, age-specific death rates for
 # each country were applied to derive expected deaths per age group.
 # These were summed to obtain total expected deaths. The total was
 # then divided by the standard population and multiplied by 100,000
 # to generate age-standardized death rates.
 
-# Assumptions:
+# ASSUMPTIONS:
 # Assumptions include the accuracy and representativeness of
 # age-specific death rates and the suitability of the WHO standard
 # population for age-standardization.
 
-# Reasoning for Differences:
+# REASONING FOR DIFFERENCES:
 # Crude death rate reflect actual death rates, while age-standardized
 # rates adjust for differences in age structures between populations.
 # Disparities between the two metrics arise due to variations in age
 # distributions among populations.
 
-# In summary, these stages involve gathering data, computing crude
-# death rates based on total populations, and then adjusting for age
-# structures using the WHO standard population to derive
-# age-standardized death rates. These calculations aid in comparing
-# COPD mortality rates between the United States and Uganda.
 
 #IMPORTS
 import pandas as pd
@@ -59,6 +54,8 @@ age_specific_death_rate_df.rename(
             'Death rate, United States, 2019' : 'us_death_rate_2019',
             'Death rate, Uganda, 2019' : 'uganda_death_rate_2019'},
             inplace= True)
+
+# creating separate dataframes for us and uganda
 us_age_specific_death_rate_df = pd.DataFrame(
     {'age_group' : age_specific_death_rate_df['age_group_years'],
     'death_rate' : age_specific_death_rate_df['us_death_rate_2019']})
