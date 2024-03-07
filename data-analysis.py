@@ -66,6 +66,18 @@ uganda_age_specific_death_rate_df = pd.DataFrame(
 
 # creating crude death rate calculation function
 def crude_death_rate_calculation(dataframe, population):
+    """ Function returns the crude death rate of a country
+    
+    Args:
+        dataframe (df): The dataframe with the age-specific death
+        rate per 100,000 people of the respective country
+        population (int): Total population of the respective country
+    
+    Returns:
+        crude_death_rate (int): integer representing the crude death
+        rate of the country per 100,000 people
+    
+    """
 
     total_death_rate = dataframe['death_rate'].sum()
     crude_death_rate = round(total_death_rate / population * 100000, 1)
@@ -74,10 +86,22 @@ def crude_death_rate_calculation(dataframe, population):
 
 # creating age standardized death rate calculation function
 def age_standardized_death_rate_calculation(dataframe):
+    """ Function that returns the age standardized death rate of a
+    country
+    
+    Args:
+        dataframe (df): Dataframe that contains the age-specific
+        death rate per 100,000 people of the respective country
+
+    Returns:
+        age_standardized_death_rate (int): integer representing the
+        age standardized death rate of the country per 100,000 people
+    
+    """
 
     merged_df = pd.merge(who_standard_population_df, dataframe, on='age_group')
     merged_df['WHO_world_standard_proportion'] = merged_df['Percentage'] / 100
-    merged_df['ASDR'] = merged_df['death_rate'] * merged_df['WHO_world_standard_proportion']
+    merged_df['ASDR'] = merged_df['death_rate'] * merged_df['WHO_world_standard_proportion'] # noqa
     age_standarized_death_rate = merged_df['ASDR'].sum()
     return round(age_standarized_death_rate, 1)
 
